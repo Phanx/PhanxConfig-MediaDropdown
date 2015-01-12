@@ -10,7 +10,7 @@
 	credits line -- any modified versions must be renamed to avoid conflicts.
 ----------------------------------------------------------------------]]
 
-local MINOR_VERSION = 150108
+local MINOR_VERSION = 20150112
 
 local lib, oldminor = LibStub:NewLibrary("PhanxConfig-MediaDropdown", MINOR_VERSION)
 if not lib then return end
@@ -81,16 +81,17 @@ end
 
 --------------------------------------------------------------------------------
 
-local function statusbar_SetValue(self, value)
-	local file = SharedMedia:Fetch("statusbar", value)
-	self.valueBG:SetTexture(file)
+local function statusbar_SetValueText(valueText, text)
+	local dropdown = valueText:GetParent()
+	local file = SharedMedia:Fetch("statusbar", text)
+	dropdown.valueBG:SetTexture(file)
 end
 
 local function statusbar_GetButtonBackground(button)
 	local bg = button:CreateTexture(nil, "BACKGROUND")
 	bg:SetPoint("TOPLEFT", -3, 0)
 	bg:SetPoint("BOTTOMRIGHT", 3, 0)
-	bg:SetVertexColor(0.35, 0.35, 0.35)
+	bg:SetVertexColor(0.5, 0.5, 0.5)
 	button.bg = bg
 	return bg
 end
@@ -120,14 +121,14 @@ local function statusbar_SetButtonBackgroundTextures(list)
 end
 
 local function statusbar_ButtonClick(button)
-	local dropdown = self:GetParent()
-	button:__OnClick()
-	dropdown.list:Hide()
-	dropdown.list:HookScript("OnShow", button_SetButtonBackgroundTextures)
-	dropdown.list.scrollFrame:HookScript("OnVerticalScroll", SetButtonBackgroundTextures)
-	button:__OnClick()
-	button:SetScript("OnClick", button.__OnClick)
-	button.__OnClick = nil
+	local dropdown = button:GetParent()
+	button:__OnClick() -- show
+	dropdown.list:Hide() -- hide
+	dropdown.list:HookScript("OnShow", statusbar_SetButtonBackgroundTextures)
+	dropdown.list.scrollFrame:HookScript("OnVerticalScroll", statusbar_SetButtonBackgroundTextures)
+	button:__OnClick() -- show again
+	button:SetScript("OnClick", button.__OnClick) -- unhook
+	button.__OnClick = nil -- cleanup
 end	
 
 mediaTypes["statusbar"] = function(dropdown)
@@ -138,9 +139,9 @@ mediaTypes["statusbar"] = function(dropdown)
 	valueBG:SetVertexColor(0.35, 0.35, 0.35)
 	dropdown.valueBG = valueBG
 
-	hooksecurefunc(dropdown.valueText, "SetText", statusbar_SetValue)
+	hooksecurefunc(dropdown.valueText, "SetText", statusbar_SetValueText)
 
-	button.__OnClick = dropdown.button:GetScript("OnClick")
+	dropdown.button.__OnClick = dropdown.button:GetScript("OnClick")
 	dropdown.button:SetScript("OnClick", statusbar_ButtonClick)
 end
 
