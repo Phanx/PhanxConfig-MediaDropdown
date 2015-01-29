@@ -10,7 +10,7 @@
 	credits line -- any modified versions must be renamed to avoid conflicts.
 ----------------------------------------------------------------------]]
 
-local MINOR_VERSION = 20150112
+local MINOR_VERSION = 20150129
 
 local lib, oldminor = LibStub:NewLibrary("PhanxConfig-MediaDropdown", MINOR_VERSION)
 if not lib then return end
@@ -54,7 +54,7 @@ local function PlayButton_OnClick(self)
 	PlaySoundFile(self.sound, "Master")
 end
 
-local function sound_OnListButtonChanged(button, value, selected)
+local function sound_OnListButtonChanged(dropdown, button, value, selected)
 	if not button.playButton then
 		local play = CreateFrame("Button", nil, button)
 		play:SetPoint("RIGHT", button, -2, 0)
