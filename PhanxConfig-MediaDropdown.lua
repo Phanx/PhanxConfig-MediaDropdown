@@ -54,28 +54,45 @@ local function PlayButton_OnClick(self)
 	PlaySoundFile(self.sound, "Master")
 end
 
+local function CreatePlayButton(parent)
+	local play = CreateFrame("Button", nil, parent)
+	play:SetSize(16, 16)
+	play:SetScript("OnClick", PlayButton_OnClick)
+
+	local bg = play:CreateTexture(nil, "BACKGROUND")
+	bg:SetTexture("Interface\\Common\\VoiceChat-Speaker")
+	bg:SetAllPoints(true)
+	play.bg = bg
+
+	local hl = play:CreateTexture(nil, "HIGHLIGHT")
+	hl:SetTexture("Interface\\Common\\VoiceChat-On")
+	hl:SetAllPoints(true)
+	play.highlight = hl
+
+	parent.playButton = play
+	return play
+end
+
 local function sound_OnListButtonChanged(dropdown, button, value, selected)
 	if not button.playButton then
-		local play = CreateFrame("Button", nil, button)
+		local play = CreatePlayButton(button)
 		play:SetPoint("RIGHT", button, -2, 0)
-		play:SetSize(16, 16)
-		play:SetScript("OnClick", PlayButton_OnClick)
-		button.playButton = play
-
-		local bg = play:CreateTexture(nil, "BACKGROUND")
-		bg:SetTexture("Interface\\Common\\VoiceChat-Speaker")
-		bg:SetAllPoints(true)
-		play.bg = bg
-
-		local hl = play:CreateTexture(nil, "HIGHLIGHT")
-		hl:SetTexture("Interface\\Common\\VoiceChat-On")
-		hl:SetAllPoints(true)
-		play.highlight = hl
 	end
 	button.playButton.sound = SharedMedia:Fetch("sound", value)
 end
 
+local function sound_SetText(valueText, text)
+	valueText:GetParent().playButton.sound = SharedMedia:Fetch("sound", text)
+end
+
 mediaTypes["sound"] = function(dropdown)
+	local play = CreatePlayButton(dropdown)
+	play:SetPoint("LEFT", dropdown.bgLeft, 26, 1)
+	dropdown.valueText:SetPoint("LEFT", play, "RIGHT", 1, 0)
+	hooksecurefunc(dropdown.valueText, "SetText", sound_SetText)
+
+	dropdown.button:SetPoint("TOPLEFT", dropdown.bgLeft, 36, -18) -- origx 16 + playwidth 16 + 4
+
 	dropdown.OnListButtonChanged = sound_OnListButtonChanged
 end
 
@@ -129,7 +146,7 @@ local function statusbar_ButtonClick(button)
 	button:__OnClick() -- show again
 	button:SetScript("OnClick", button.__OnClick) -- unhook
 	button.__OnClick = nil -- cleanup
-end	
+end
 
 mediaTypes["statusbar"] = function(dropdown)
 	local valueBG = dropdown:CreateTexture(nil, "OVERLAY")
